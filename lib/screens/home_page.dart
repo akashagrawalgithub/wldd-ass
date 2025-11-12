@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/github_api.dart';
 import '../models/user.dart';
+import 'user_detail_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -75,6 +76,15 @@ class _HomePageState extends State<HomePage> {
                         ),
                     ],
                   ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            UserDetailPage(username: user.login),
+                      ),
+                    );
+                  },
                 );
               },
             ),

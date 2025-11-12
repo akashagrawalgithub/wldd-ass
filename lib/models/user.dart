@@ -4,6 +4,9 @@ class User {
   final String? avatarUrl;
   final String? name;
   final String? bio;
+  final int? followers;
+  final int? following;
+  final int? publicRepos;
 
   User({
     required this.login,
@@ -11,6 +14,9 @@ class User {
     this.avatarUrl,
     this.name,
     this.bio,
+    this.followers,
+    this.following,
+    this.publicRepos,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -20,6 +26,9 @@ class User {
       avatarUrl: json['avatar_url'] as String?,
       name: json['name'] as String?,
       bio: json['bio'] as String?,
+      followers: json['followers'] as int?,
+      following: json['following'] as int?,
+      publicRepos: json['public_repos'] as int?,
     );
   }
 }
