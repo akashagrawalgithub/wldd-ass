@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/github_api.dart';
+import '../services/storage.dart';
 import '../models/user.dart';
 import 'user_detail_page.dart';
 
@@ -12,6 +13,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final GithubApi _api = GithubApi();
+  final Storage _storage = Storage();
   final TextEditingController _searchController = TextEditingController();
   List<User> _users = [];
   List<User> _filteredUsers = [];
@@ -44,7 +46,19 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Future<void> _loadUsers() async {
+  Future<void> _loadUsers({bool forceRefresh = false}) async {
+    if (!forceRefresh) {
+      final cached = await _storage.getUsers();
+      if (cached != null && cached.isNotEmpty) {
+        setState(() {
+          _users = cached;
+          _filteredUsers = cached;
+        });
+        _loadUsersFromApi();
+        return;
+      }
+    }
+
     setState(() {
       _loading = true;
       _error = null;
@@ -52,12 +66,20 @@ class _HomePageState extends State<HomePage> {
 
     try {
       final users = await _api.getUsers();
+      await _storage.saveUsers(users);
       setState(() {
         _users = users;
         _filteredUsers = users;
         _loading = false;
       });
     } catch (e) {
+      final cached = await _storage.getUsers();
+      if (cached != null && cached.isNotEmpty) {
+        setState(() {
+          _users = cached;
+          _filteredUsers = cached;
+        });
+      }
       setState(() {
         _error = e.toString();
         _loading = false;
@@ -65,18 +87,38 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _loadUsersFromApi() async {
+    try {
+      final users = await _api.getUsers();
+      await _storage.saveUsers(users);
+      if (mounted) {
+        setState(() {
+          _users = users;
+          _filteredUsers = users;
+        });
+        _filterUsers();
+      }
+    } catch (e) {}
+  }
+
   Future<void> _refreshUsers() async {
     try {
       final users = await _api.getUsers();
+      await _storage.saveUsers(users);
       setState(() {
         _users = users;
         _filteredUsers = users;
       });
       _filterUsers();
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-      });
+      final cached = await _storage.getUsers();
+      if (cached != null && cached.isNotEmpty) {
+        setState(() {
+          _users = cached;
+          _filteredUsers = cached;
+        });
+        _filterUsers();
+      }
     }
   }
 
